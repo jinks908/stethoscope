@@ -41,14 +41,14 @@ except ImportError:
 V_PROC, V_VOL = 0, 1
 
 # color pair ids
-C_ACCENT, C_READ, C_WRITE, C_BAR, C_SEL = 1, 2, 3, 4, 5
+C_ACCENT, C_READ, C_WRITE, C_BAR, C_FOOT, C_HEADER, C_SEL = 1, 2, 3, 4, 5, 6, 7
 
 
 class App:
     def __init__(self, stdscr):
         self.s = stdscr
         self.view = V_PROC
-        self.interval = 1.0
+        self.interval = 1.5
         self.paused = False
         self.sel = 0
         self.msg = ""
@@ -74,11 +74,13 @@ class App:
             bg = -1
         except curses.error:
             bg = curses.COLOR_BLACK
-        curses.init_pair(C_ACCENT, curses.COLOR_CYAN, bg)
+        curses.init_pair(C_ACCENT, 51, bg)
         curses.init_pair(C_READ, curses.COLOR_GREEN, bg)
         curses.init_pair(C_WRITE, curses.COLOR_YELLOW, bg)
-        curses.init_pair(C_BAR, curses.COLOR_BLACK, curses.COLOR_CYAN)
-        curses.init_pair(C_SEL, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(C_BAR, 39, bg)
+        curses.init_pair(C_FOOT, 51, bg)
+        curses.init_pair(C_HEADER, 204, bg)
+        curses.init_pair(C_SEL, curses.COLOR_BLACK, 50)
 
     def cp(self, i):
         return curses.color_pair(i) if curses.has_colors() else 0
@@ -149,21 +151,21 @@ class App:
             self._draw_vols(h, w)
 
         # footer
-        self.fill(h - 1, self.cp(C_BAR))
+        self.fill(h - 1, self.cp(C_FOOT))
         if self.msg:
-            self.put(h - 1, 1, self.msg, self.cp(C_BAR) | curses.A_BOLD)
+            self.put(h - 1, 1, self.msg, self.cp(C_FOOT) | curses.A_BOLD)
         else:
             if self.view == V_PROC:
                 keys = "k/l move  Enter/f files  i inspect (livestream)  I inspect (log to file)  x kill  1/2 view  p pause  +/- rate  q quit"
             else:
                 keys = "k/l move  Enter/r holders  e eject  1/2 view  p pause  q quit"
-            self.put(h - 1, 1, keys, self.cp(C_BAR))
+            self.put(h - 1, 1, keys, self.cp(C_FOOT) | curses.A_BOLD)
         self.s.refresh()
 
     def _draw_procs(self, h, w):
         self.put(3, 1, "%7s  %-26s %11s %11s %10s %10s" %
                  ("PID", "COMMAND", "READ/s", "WRITE/s", "RD TOT", "WR TOT"),
-                 curses.A_BOLD)
+                 self.cp(C_HEADER) | curses.A_BOLD)
         top = 4
         avail = h - top - 1
         if not self.rows:
@@ -334,7 +336,7 @@ class App:
             self.sel = 0
         elif ch in (ord("p"), ord(" ")):
             self.paused = not self.paused
-        elif ch == ord("+"):
+        elif ch == ord("="):
             self.interval = min(10.0, round(self.interval + 0.5, 1))
         elif ch == ord("-"):
             self.interval = max(0.5, round(self.interval - 0.5, 1))
