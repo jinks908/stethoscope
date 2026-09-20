@@ -20,5 +20,5 @@
 <text x="18.0" y="156.0" xml:space="preserve" fill="#d6d9e0" font-size="15" textLength="766.7" lengthAdjust="spacingAndGlyphs">     814  imagent                        23.5K/s        0B/s       2.8G      14.4G</text>
 <text x="18.0" y="174.0" xml:space="preserve" fill="#d6d9e0" font-size="15" textLength="766.7" lengthAdjust="spacingAndGlyphs">   77031  spotlightknowledged.update        0B/s      3.9K/s     365.9M     212.2M</text>
 <rect x="18.0" y="559.0" width="1019.1" height="18.0" fill="#56b6c2"/>
-<text x="18.0" y="570.0" xml:space="preserve" fill="#1c1f26" font-size="15" textLength="1019.1" lengthAdjust="spacingAndGlyphs"> ↑↓/jk move  Enter/f files  i inspect  x kill  1/2 view  p pause  +/- rate  q quit                           </text>
+<text x="18.0" y="570.0" xml:space="preserve" fill="#1c1f26" font-size="15" textLength="1019.1" lengthAdjust="spacingAndGlyphs"> k/l move  Enter/f files  i inspect (livestream)  I inspect (log to file)  x kill  1/2 view  p pause  +/- rate  q quit                           </text>
 </svg>

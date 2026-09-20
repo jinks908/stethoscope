@@ -171,7 +171,7 @@ def cmd_top(interval=1.0, limit=20):
 # mode: inspect (why — live syscall trace via fs_usage)
 # ---------------------------------------------------------------------------
 
-def cmd_inspect(pid):
+def cmd_inspect(pid, log_to_file=False):
     """Live syscall-level file I/O for one pid, plus cumulative totals."""
     if os.geteuid() != 0:
         sys.stderr.write("inspect needs root (fs_usage). Re-run: sudo %s inspect %d\n"
@@ -187,17 +187,35 @@ def cmd_inspect(pid):
           "ctrl-c to quit." + RESET)
     print()
 
-    # -f filesys narrows to filesystem syscalls; -w widens columns; -e excludes self.
+    # If logging enabled
+    if log_to_file:
+        # Log to ~/logs/disk-usage-<pid>-<timestamp>.log for post-mortem analysis.
+        LOG_DIR = os.path.expanduser("~/logs")
+        os.makedirs(LOG_DIR, exist_ok=True)
+        LOG_FILE = os.path.join(LOG_DIR, "disk-usage-%d-%s.log" % (pid, time.strftime("%Y%m%d-%H%M%S")))
+    else:
+        # Throw to /dev/null by default
+        LOG_FILE = os.devnull
+
+    # -f filesys narrows to filesystem syscalls; -w widens columns.
     cmd = ["/usr/bin/fs_usage", "-w", "-f", "filesys", str(pid)]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             bufsize=1, universal_newlines=True)
     try:
-        for line in proc.stdout:
-            print(line.rstrip())
+        with open(LOG_FILE, "w") as log:
+            for line in proc.stdout:
+                # live to terminal
+                print(line.rstrip())
+                if log_to_file:
+                    # and to the file
+                    log.write(line)
+                    # so the file stays current
+                    log.flush()
     except KeyboardInterrupt:
         pass
     finally:
         proc.terminate()
+        proc.wait()
     return 0
 
 

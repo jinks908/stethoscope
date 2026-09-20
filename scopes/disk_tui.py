@@ -17,7 +17,7 @@ Two views, switchable with 1/2 or Tab:
     Volumes    mounted volumes; Enter runs the reverse lookup (the `busy` view)
 
 Keys (also shown in the footer):
-    ↑/↓ j/k  move      1/2 Tab  switch view     p / space  pause     +/-  interval
+    k/l  move      1/2 Tab  switch view     p / space  pause     +/-  interval
     Processes:  Enter/f held files   i  inspect (fs_usage, sudo)   x  kill (confirm)
     Volumes:    Enter/r holders      e  eject (confirm)
     q  quit
@@ -64,7 +64,7 @@ class App:
         self._init_colors()
         self.refresh_volumes()
 
-    # -- color -----------------------------------------------------------
+    # -- Colors -----------------------------------------------------------
     def _init_colors(self):
         if not curses.has_colors():
             return
@@ -154,9 +154,9 @@ class App:
             self.put(h - 1, 1, self.msg, self.cp(C_BAR) | curses.A_BOLD)
         else:
             if self.view == V_PROC:
-                keys = "↑↓/jk move  Enter/f files  i inspect  x kill  1/2 view  p pause  +/- rate  q quit"
+                keys = "k/l move  Enter/f files  i inspect (livestream)  I inspect (log to file)  x kill  1/2 view  p pause  +/- rate  q quit"
             else:
-                keys = "↑↓/jk move  Enter/r holders  e eject  1/2 view  p pause  q quit"
+                keys = "k/l move  Enter/r holders  e eject  1/2 view  p pause  q quit"
             self.put(h - 1, 1, keys, self.cp(C_BAR))
         self.s.refresh()
 
@@ -255,7 +255,7 @@ class App:
                 ["(no on-disk files held — try sudo)"]
         self.popup("held files · pid %d (%s)" % (pid, name), lines)
 
-    def act_inspect(self):
+    def act_inspect(self, use_log=False):
         pid, name = self.selected_pid()
         if not pid:
             return
@@ -266,7 +266,11 @@ class App:
             os.system("clear")
             print("=== stethoscope disk inspect · pid %d (%s) — ctrl-C to return ===\n"
                   % (pid, name))
-            d.cmd_inspect(pid)
+            # ! INSPECT COMMAND CALL
+            if use_log:
+                d.cmd_inspect(pid, True)
+            else:
+                d.cmd_inspect(pid)
         except KeyboardInterrupt:
             pass
         try:
@@ -317,7 +321,7 @@ class App:
         n = len(self.rows) if self.view == V_PROC else len(self.volumes)
         if ch in (ord("q"), 27):            # q / ESC
             return False
-        elif ch in (curses.KEY_DOWN, ord("j")):
+        elif ch in (curses.KEY_DOWN, ord("l")):
             self.sel = min(self.sel + 1, max(0, n - 1))
         elif ch in (curses.KEY_UP, ord("k")):
             self.sel = max(self.sel - 1, 0)
@@ -336,8 +340,12 @@ class App:
             self.interval = max(0.5, round(self.interval - 0.5, 1))
         elif self.view == V_PROC and ch in (ord("f"), curses.KEY_ENTER, 10, 13):
             self.act_files()
+        # fs_usage w/ livestream only
         elif self.view == V_PROC and ch == ord("i"):
             self.act_inspect()
+        # fs_usage w/ livestream and logging to file
+        elif self.view == V_PROC and ch == ord("I"):
+            self.act_inspect(True)
         elif self.view == V_PROC and ch == ord("x"):
             self.act_kill()
         elif self.view == V_VOL and ch in (ord("r"), curses.KEY_ENTER, 10, 13):
